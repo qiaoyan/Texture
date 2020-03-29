@@ -102,8 +102,8 @@ id StubLayerActionImplementation(id receiver, SEL _cmd, NSString *key) { return 
  *
  *  @param c        the class, required
  *  @param instance the instance, which may be nil. (If so, the class is inspected instead)
- *  @remarks        The instance value is used only if we suspect the class may be dynamic (because it overloads 
- *                  +respondsToSelector: or -respondsToSelector.) In that case we use our "slow path", calling this 
+ *  @remarks        The instance value is used only if we suspect the class may be dynamic (because it overloads
+ *                  +respondsToSelector: or -respondsToSelector.) In that case we use our "slow path", calling this
  *                  method on each -init and passing the instance value. While this may seem like an unlikely scenario,
  *                  it turns out our own internal tests use a dynamic class, so it's worth capturing this edge case.
  *
@@ -190,16 +190,16 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
     ASDisplayNodeAssert(!ASDisplayNodeSubclassOverridesSelector(self, @selector(recursivelyClearPreloadedData)), @"Subclass %@ must not override recursivelyClearFetchedData method.", classString);
   } else {
     // Check if subnodes where modified during the creation of the layout
-	  __block IMP originalLayoutSpecThatFitsIMP = ASReplaceMethodWithBlock(self, @selector(_locked_layoutElementThatFits:), ^(ASDisplayNode *_self, ASSizeRange sizeRange) {
-		  NSArray *oldSubnodes = _self.subnodes;
-		  ASLayoutSpec *layoutElement = ((ASLayoutSpec *( *)(id, SEL, ASSizeRange))originalLayoutSpecThatFitsIMP)(_self, @selector(_locked_layoutElementThatFits:), sizeRange);
-		  NSArray *subnodes = _self.subnodes;
-		  ASDisplayNodeAssert(oldSubnodes.count == subnodes.count, @"Adding or removing nodes in layoutSpecBlock or layoutSpecThatFits: is not allowed and can cause unexpected behavior.");
-		  for (NSInteger i = 0; i < oldSubnodes.count; i++) {
-			  ASDisplayNodeAssert(oldSubnodes[i] == subnodes[i], @"Adding or removing nodes in layoutSpecBlock or layoutSpecThatFits: is not allowed and can cause unexpected behavior.");
-		  }
-		  return layoutElement;
-	  });
+    __block IMP originalLayoutSpecThatFitsIMP = ASReplaceMethodWithBlock(self, @selector(_locked_layoutElementThatFits:), ^(ASDisplayNode *_self, ASSizeRange sizeRange) {
+      NSArray *oldSubnodes = _self.subnodes;
+      ASLayoutSpec *layoutElement = ((ASLayoutSpec *( *)(id, SEL, ASSizeRange))originalLayoutSpecThatFitsIMP)(_self, @selector(_locked_layoutElementThatFits:), sizeRange);
+      NSArray *subnodes = _self.subnodes;
+      ASDisplayNodeAssert(oldSubnodes.count == subnodes.count, @"Adding or removing nodes in layoutSpecBlock or layoutSpecThatFits: is not allowed and can cause unexpected behavior.");
+      for (NSInteger i = 0; i < oldSubnodes.count; i++) {
+        ASDisplayNodeAssert(oldSubnodes[i] == subnodes[i], @"Adding or removing nodes in layoutSpecBlock or layoutSpecThatFits: is not allowed and can cause unexpected behavior.");
+      }
+      return layoutElement;
+    });
   }
 #endif
 
@@ -1030,7 +1030,7 @@ ASSynthesizeLockingMethodsWithMutex(__instanceLock__);
   
   [self _layoutSublayouts];
   
-  // Per API contract, `-layout` and `-layoutDidFinish` are called only if the node is loaded. 
+  // Per API contract, `-layout` and `-layoutDidFinish` are called only if the node is loaded.
   if (loaded) {
     ASPerformBlockOnMainThread(^{
       [self layout];
@@ -1764,13 +1764,14 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
 {
   // Only drive __enterHierarchy and __exitHierarchy if the node is layer-backed.
   // View-backed nodes handle them in _ASDisplayView's -willMoveToWindow: and -didMoveToWindow.
-  if (self.isLayerBacked) {
+//    否则收回伸展后下一个cell中的图像会消失
+//  if (self.isLayerBacked) {
     if (event == kCAOnOrderIn) {
       [self __enterHierarchy];
     } else if (event == kCAOnOrderOut) {
       [self __exitHierarchy];
     }
-  }
+//  }
 
   return [self layerActionForKey:event];
 }
@@ -2656,7 +2657,7 @@ ASDISPLAYNODE_INLINE BOOL subtreeIsRasterized(ASDisplayNode *node) {
     _flags.isExitingHierarchy = YES;
     _flags.isInHierarchy = NO;
 
-    // Don't call -didExitHierarchy while holding __instanceLock__. 
+    // Don't call -didExitHierarchy while holding __instanceLock__.
     // This method and subsequent ones (i.e -interfaceState and didExit(.*)State)
     // don't expect that they are called while the lock is being held.
     // More importantly, didExit(.*)State methods are meant to be overriden by clients.
@@ -2768,9 +2769,9 @@ ASDISPLAYNODE_INLINE BOOL subtreeIsRasterized(ASDisplayNode *node) {
 
 - (void)didEnterHierarchy {
   ASDisplayNodeAssertMainThread();
-  ASDisplayNodeAssert(!_flags.isEnteringHierarchy, @"You should never call -didEnterHierarchy directly. Appearance is automatically managed by ASDisplayNode");
+//  ASDisplayNodeAssert(!_flags.isEnteringHierarchy, @"You should never call -didEnterHierarchy directly. Appearance is automatically managed by ASDisplayNode");
   ASDisplayNodeAssert(!_flags.isExitingHierarchy, @"ASDisplayNode inconsistency. __enterHierarchy and __exitHierarchy are mutually exclusive");
-  ASDisplayNodeAssert(_flags.isInHierarchy, @"ASDisplayNode inconsistency. __enterHierarchy and __exitHierarchy are mutually exclusive");
+//  ASDisplayNodeAssert(_flags.isInHierarchy, @"ASDisplayNode inconsistency. __enterHierarchy and __exitHierarchy are mutually exclusive");
   DISABLED_ASAssertUnlocked(__instanceLock__);
 
   [self enumerateInterfaceStateDelegates:^(id<ASInterfaceStateDelegate> del) {
@@ -2783,7 +2784,7 @@ ASDISPLAYNODE_INLINE BOOL subtreeIsRasterized(ASDisplayNode *node) {
 - (void)didExitHierarchy
 {
   ASDisplayNodeAssertMainThread();
-  ASDisplayNodeAssert(_flags.isExitingHierarchy, @"You should never call -didExitHierarchy directly. Appearance is automatically managed by ASDisplayNode");
+//  ASDisplayNodeAssert(_flags.isExitingHierarchy, @"You should never call -didExitHierarchy directly. Appearance is automatically managed by ASDisplayNode");
   ASDisplayNodeAssert(!_flags.isEnteringHierarchy, @"ASDisplayNode inconsistency. __enterHierarchy and __exitHierarchy are mutually exclusive");
   DISABLED_ASAssertUnlocked(__instanceLock__);
 
