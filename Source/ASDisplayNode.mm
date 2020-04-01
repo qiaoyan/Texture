@@ -1765,13 +1765,13 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   // Only drive __enterHierarchy and __exitHierarchy if the node is layer-backed.
   // View-backed nodes handle them in _ASDisplayView's -willMoveToWindow: and -didMoveToWindow.
 //    否则收回伸展后下一个cell中的图像会消失
-//  if (self.isLayerBacked) {
+  if (self.isLayerBacked) {
     if (event == kCAOnOrderIn) {
       [self __enterHierarchy];
     } else if (event == kCAOnOrderOut) {
       [self __exitHierarchy];
     }
-//  }
+  }
 
   return [self layerActionForKey:event];
 }
